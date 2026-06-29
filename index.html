@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <link rel="icon" type="image/png" href="icon.png"> 
+  <title>Number Place</title>
+
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div id="app">
+
+    <!-- 問題一覧画面 -->
+    <section id="problem-list-screen" class="screen hidden">
+      <header class="screen-header">
+        <h1>問題一覧</h1>
+      </header>
+
+      <div id="problem-list" class="problem-list"></div>
+
+      <div class="problem-list-footer">
+        <button id="create-problem-button" class="primary-button">
+          ＋ 新しい問題を作成
+        </button>
+      </div>
+    </section>
+
+    <!-- プレイ / 問題作成 共通画面 -->
+    <section id="game-screen" class="screen">
+
+      <header class="screen-header">
+
+        <div class="header-top">
+          <h1>Number Place</h1>
+
+          <button id="new-button">
+            一覧
+          </button>
+        </div>
+
+        <div class="header-status">
+
+          <span id="mode-label">
+            問題作成中
+          </span>
+
+          <span id="timer" class="hidden">
+            Time <span id="timer-time">00:00</span>
+          </span>
+
+          <div class="highlight-control">
+            <span class="highlight-label">
+              Highlight
+            </span>
+            <button
+              id="highlight-button"
+              type="button"
+              title="Highlight"
+              aria-label="同じ数字をハイライト">
+              ✦
+            </button>
+          </div>
+
+        </div>
+
+      </header>
+
+      <!-- 盤面 -->
+      <div id="board" class="board" role="grid" aria-label="数独盤面">
+      </div>
+
+      <!-- 数字ボタン -->
+      <div id="number-pad" class="number-pad">
+        <button type="button" class="number-button" data-number="1">
+          <span class="number">1</span>
+          <span class="remaining-count"></span>
+        </button>
+
+        <button type="button" class="number-button" data-number="2">
+          <span class="number">2</span>
+          <span class="remaining-count"></span>
+        </button>
+
+        <button type="button" class="number-button" data-number="3">
+          <span class="number">3</span>
+          <span class="remaining-count"></span>
+        </button>
+
+        <button type="button" class="number-button" data-number="4">
+          <span class="number">4</span>
+          <span class="remaining-count"></span>
+        </button>
+
+        <button type="button" class="number-button" data-number="5">
+          <span class="number">5</span>
+          <span class="remaining-count"></span>
+        </button>
+
+        <button type="button" class="number-button" data-number="6">
+          <span class="number">6</span>
+          <span class="remaining-count"></span>
+        </button>
+
+        <button type="button" class="number-button" data-number="7">
+          <span class="number">7</span>
+          <span class="remaining-count"></span>
+        </button>
+
+        <button type="button" class="number-button" data-number="8">
+          <span class="number">8</span>
+          <span class="remaining-count"></span>
+        </button>
+
+        <button type="button" class="number-button" data-number="9">
+          <span class="number">9</span>
+          <span class="remaining-count"></span>
+        </button>
+
+        <button type="button" id="erase-button" class="number-button erase-button" data-number="0">
+          □
+        </button>
+      </div>
+
+      <!-- フッター操作 -->
+      <div class="bottom-controls">
+
+        <button id="complete-problem-button" type="button" class="hidden">
+          問題完成
+        </button>
+
+      </div>
+
+    </section>
+
+    <!-- 問題名入力ダイアログ -->
+    <dialog id="problem-name-dialog">
+
+      <form method="dialog">
+
+        <h2>問題名</h2>
+
+        <input id="problem-name-input" type="text" maxlength="50" placeholder="問題名を入力">
+
+        <menu>
+          <button value="cancel">
+            キャンセル
+          </button>
+
+          <button id="save-problem-button" value="default">
+            保存
+          </button>
+        </menu>
+
+      </form>
+
+    </dialog>
+
+  </div>
+
+  <script type="module" src="main.js"></script>
+</body>
+</html>
