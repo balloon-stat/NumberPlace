@@ -45,6 +45,7 @@ const elements = {
   completeProblemButton: document.getElementById("complete-problem-button"),
   // problem list
   problemList: document.getElementById("problem-list"),
+  emptyProblemList: document.getElementById("empty-problem-list"),
   createProblemButton: document.getElementById("create-problem-button"),
   // dialog
   problemNameDialog: document.getElementById("problem-name-dialog"),
@@ -136,16 +137,20 @@ function handleCellClick(row, col) {
     state.errorCells.clear();
   }
 
-  if (state.selectedNumber !== null) {
+  const val = state.board[row][col];
+
+  const hasVal = val !== 0;
+  if (hasVal && state.selectedNumber !== 0) {
+    const isAlreadySelected = state.selectedNumber === val;
+    state.selectedNumber = isAlreadySelected ? null : val;
+  } else if (state.selectedNumber !== null) {
     if (state.selectedNumber === 0) {
       eraseNumber(row, col);
     } else {
       inputNumber(row, col, state.selectedNumber);
     }
-    selectCell(row, col);
-    renderGame();
-    return;
   }
+
   selectCell(row, col);
   renderGame();
 }
@@ -433,7 +438,6 @@ function startProblemCreation() {
 }
 
 function renderControls() {
-  console.log("mode =", state.mode);
   elements.completeProblemButton.classList.toggle(
     "hidden",
     state.mode !== "edit"
@@ -534,6 +538,13 @@ function initializeProblemList() {
 function renderProblemList() {
   elements.problemList.innerHTML = "";
 
+  if (state.problems.length === 0) {
+    elements.problemList.append(elements.emptyProblemList);
+    elements.emptyProblemList.classList.remove("hidden");
+    return;
+  }
+  elements.emptyProblemList.classList.add("hidden");
+
   for (const problem of state.problems) {
     const item = document.createElement("div");
     item.className = "problem-item";
@@ -622,10 +633,18 @@ function loadProblem(id) {
   state.sessionStartTime = null;
 
   renderGame();
+
+  elements.board.classList.remove("enter");
+  void elements.board.offsetWidth;
+  elements.board.classList.add("enter");
+
   showGameScreen();
   savePlayData();
 
-  startTimer();
+  playStartSound();
+  setTimeout(() => {
+    startTimer();
+  }, 220);
 }
 
 function formatTime(totalSeconds) {
@@ -873,5 +892,25 @@ function playEraseSound() {
     volume: 0.06,
     attackTime: 0.003,
   });
+}
+
+function playStartSound() {
+  sound.playSynth({
+    type: "triangle",
+    freqStart: 392,   // G4
+    freqEnd: 392,
+    duration: 0.18,
+    volume: 0.05,
+    attackTime: 0.01,
+  });
+
+  sound.playSynth({
+    type: "triangle",
+    freqStart: 523,   // C5
+    freqEnd: 523,
+    duration: 0.28,
+    volume: 0.06,
+    attackTime: 0.01,
+  }, 0.12);
 }
 
