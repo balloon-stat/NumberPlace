@@ -10,7 +10,7 @@
   --border-strong: #6b7280;
 
   --selected: #dbeafe;
-  --highlight: #edf5ff;
+  --highlight: #dbeafe;
 
   --error-bg: #ffe5e5;
   --error-text: #c00000;
@@ -437,6 +437,7 @@ dialog button {
   aspect-ratio: 1;
   border: none;
   background: transparent;
+  -webkit-tap-highlight-color: transparent;
 }
 
 .number-button::before {
@@ -478,7 +479,12 @@ dialog button {
 }
 
 .number-button.disabled::before {
-  opacity: .45;
+  border-color: #e4e7eb;
+  box-shadow: none;
+}
+
+.number-button.disabled:hover::before {
+  transform: none;
   box-shadow: none;
 }
 
@@ -501,6 +507,10 @@ dialog button {
   font-size: clamp(24px, 5.5vw, 32px);
   position: relative;
   z-index: 1;
+}
+
+.number-button.disabled .number {
+  color: #7c8ca0;
 }
 
 /* ---------- 下部操作 ---------- */

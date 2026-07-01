@@ -392,7 +392,7 @@ function renderNumberPad() {
     }
     const remaining = getRemainingCount(number);
     const countElement = button.querySelector(".remaining-count");
-    countElement.textContent = `x ${remaining}`;
+    countElement.textContent = remaining === 0 ? "" : `× ${remaining}`;
     button.classList.toggle("disabled", remaining === 0);
   });
 }
@@ -424,6 +424,7 @@ function showGameScreen() {
 }
 
 function startProblemCreation() {
+  elements.board.classList.remove("cleared");
   state.mode = "edit";
 
   state.board = createEmptyBoard();
@@ -623,6 +624,8 @@ function loadProblem(id) {
   const problem = state.problems.find(p => p.id === id);
   if (!problem) return;
 
+  elements.board.classList.remove("cleared");
+  
   state.mode = "play";
   state.board = structuredClone(problem.board);
   state.givenBoard = structuredClone(problem.board);
