@@ -106,6 +106,11 @@ function createBoardElements() {
       cell.dataset.row = row;
       cell.dataset.col = col;
 
+      const number = document.createElement("span");
+      number.className = "cell-number";
+      cell.numberElement = number;
+      cell.appendChild(number);
+
       if (col === 2 || col === 5) {
         cell.classList.add("block-right");
       }
@@ -166,7 +171,6 @@ function renderHeader() {
   }
 }
 
-// renderBoard の前あたりに追加
 function getCellKey(row, col) {
   return `${row}-${col}`;
 }
@@ -228,7 +232,7 @@ function renderBoard() {
       const value = state.board[row][col];
       const key = getCellKey(row, col);
 
-      cell.textContent = value || "";
+      cell.numberElement.textContent = value || "";
       cell.classList.remove(
         "selected",
         "given",
@@ -271,11 +275,8 @@ function renderBoard() {
 }
 
 function triggerErrorFeedback() {
-  // エラー音
-  sound.play(180, 0.15, "square", 0.3);
-  sound.play(140, 0.25, "square", 0.25); // 少し低い2音目
-
-  // シェイク（全エラーセル）
+  playErrorSound();
+  // シェイク
   const cells = elements.board.children;
   state.errorCells.forEach(key => {
     const [r, c] = key.split("-").map(Number);
@@ -323,7 +324,12 @@ function isGivenCell(row, col) {
 function inputNumber(row, col, number) {
   if (isGivenCell(row, col)) return; // 固定セルは編集不可
 
+  if (state.board[row][col] === number) {
+    return;
+  }
   state.board[row][col] = number;
+
+  playInputSound();
 
   if (state.mode === "play") {
     state.errorCells = findDuplicates(row, col, number);
@@ -339,7 +345,11 @@ function inputNumber(row, col, number) {
 
 function eraseNumber(row, col) {
   if (isGivenCell(row, col)) return; // 固定セルは編集不可
+  if (state.board[row][col] === 0) {
+    return;
+  }
   state.board[row][col] = 0;
+  playEraseSound();
   state.errorCells.clear();
   savePlayData();
 }
@@ -454,20 +464,8 @@ function completeProblem() {
 }
 
 function getDefaultProblemName() {
-  const now = new Date();
-
   const number = state.problems.length + 1;
-
-  const date =
-    `${now.getFullYear()}-` +
-    `${String(now.getMonth() + 1).padStart(2, "0")}-` +
-    `${String(now.getDate()).padStart(2, "0")}`;
-
-  const time =
-    `${String(now.getHours()).padStart(2, "0")} : ` +
-    `${String(now.getMinutes()).padStart(2, "0")}`;
-
-  return `問題 #${number} -- ${date} ${time} --`;
+  return `問題 #${number}`;
 }
 
 function createProblemId() {
@@ -538,13 +536,22 @@ function renderProblemList() {
 
   for (const problem of state.problems) {
     const item = document.createElement("div");
-
     item.className = "problem-item";
 
+    const now = new Date(problem.createdAt);
+    const date =
+      `${now.getFullYear()}-` +
+      `${String(now.getMonth() + 1).padStart(2, "0")}-` +
+      `${String(now.getDate()).padStart(2, "0")}`;
+    const time =
+      `${String(now.getHours()).padStart(2, "0")} : ` +
+      `${String(now.getMinutes()).padStart(2, "0")}`;
+
     item.innerHTML = `
-      <span class="problem-name">
-        ${problem.name}
-      </span>
+      <div class="problem-name">
+        <div class="problem-title">${problem.name}</div>
+        <div class="problem-date">${date} ${time}</div>
+      </div>
 
       <button
         class="play-problem-button"
@@ -829,8 +836,42 @@ function handleClear() {
 }
 
 function playClearSound() {
-  sound.play(523, 0.15, "triangle", 0.15);
-  sound.play(659, 0.15, "triangle", 0.15);
-  sound.play(784, 0.4, "triangle", 0.2);
+  sound.play(523, 0.12, "triangle", 0.12);
+  sound.play(659, 0.12, "triangle", 0.12);
+  sound.play(784, 0.3, "triangle", 0.18);
+}
+
+function playErrorSound() {
+  sound.play(180, 0.09, "square", 0.10);
+  sound.play(140, 0.15, "square", 0.08);
+}
+
+function playInputSound(number) {
+  const freq = [
+    0,
+    660, 700, 740,
+    784, 830, 880,
+    932, 988, 1046,
+  ];
+
+  sound.playSynth({
+    type: "triangle",
+    freqStart: freq[number],
+    freqEnd: freq[number] * 1.03,
+    duration: 0.045,
+    volume: 0.07,
+    attackTime: 0.003,
+  });
+}
+
+function playEraseSound() {
+  sound.playSynth({
+    type: "sine",
+    freqStart: 520,
+    freqEnd: 420,
+    duration: 0.05,
+    volume: 0.06,
+    attackTime: 0.003,
+  });
 }
 

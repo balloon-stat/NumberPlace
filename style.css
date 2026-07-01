@@ -182,7 +182,7 @@ dialog button {
 #timer {
   font-weight: 600;
   margin-left: auto;
-  margin-right: 48px;
+  margin-right: 100px;
 }
 
 /* タイマー表示のずれ防止 */
@@ -197,6 +197,10 @@ dialog button {
 }
 
 /* ---------- 問題一覧 ---------- */
+
+.problem-list-screen .screen-header {
+  margin-bottom: 16px;
+}
 
 .problem-list {
   flex: 1;
@@ -214,8 +218,8 @@ dialog button {
   border: 1px solid var(--border);
   border-radius: 8px;
 
-  padding: 12px;
-  min-height: 56px;
+  padding: 16px;
+  min-height: 64px;
   background:white;
 
   box-shadow: 0 2px 6px rgba(0,0,0,.05);
@@ -223,17 +227,58 @@ dialog button {
 
 .problem-name {
   flex: 1;
-  font-size:1rem;
+}
+
+.problem-title {
+  font-size: 1rem;
+  font-weight: 700;
+}
+
+.problem-date {
+  margin-top: 2px;
+
+  font-size: .82rem;
   font-weight:600;
+  color: #888;
+}
+
+.problem-item button {
+  width: 40px;
+  height: 40px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  background: #fff;
+
+  border: 1px solid var(--border);
+  border-radius: 8px;
+
+  transition:
+    background .15s ease,
+    border-color .15s ease;
 }
 
 .play-problem-button {
-  color: white;
-  background: var(--accent);
+  color: var(--accent);
+}
+
+.play-problem-button:hover {
+  background: #eef5ff;
+  border-color: var(--accent);
+}
+
+.delete-problem-button {
+  color: #777;
+  font-size: 1.25rem;
+  font-weight: 700;
 }
 
 .delete-problem-button:hover {
-  color: red;
+  background: #fff1f1;
+  color: #d33;
+  border-color: #f2b7b7;
 }
 
 .problem-list-footer {
@@ -247,6 +292,11 @@ dialog button {
 }
 
 .primary-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+
   width: 100%;
   min-height: 56px;
   margin-top: 16px;
@@ -260,6 +310,10 @@ dialog button {
 
   font-weight:800;
   box-shadow: 0 2px 6px rgba(0,0,0,.05);
+}
+
+.button-icon {
+  font-size: 1.2rem;
 }
 
 /* ---------- 盤面 ---------- */
@@ -280,6 +334,10 @@ dialog button {
   overflow: hidden;
 }
 
+.cell-number {
+  display: inline-block;
+}
+
 .cell {
   display: flex;
   align-items: center;
@@ -287,7 +345,8 @@ dialog button {
 
   user-select: none;
 
-  font-size: clamp(18px, 4vw, 28px);
+  font-size: 32px;
+  font-weight: 600;
 
   border: 1px solid var(--border);
 
@@ -397,7 +456,7 @@ dialog button {
 .remaining-count {
   position: absolute;
 
-  right: 2%;
+  right: 3%;
   bottom: 22%;
   transform: translate(50%, 50%);
 
@@ -410,7 +469,7 @@ dialog button {
 
 .number {
   color: var(--accent);
-  font-size: 2.4rem;
+  font-size: 2.0rem;
   position: relative;
   z-index: 1;
 }
@@ -495,43 +554,21 @@ dialog menu {
 }
 
 @keyframes shake {
-  0% {
-    transform: translateX(0);
-  }
-
-  20% {
-    transform: translateX(-4px);
-  }
-
-  40% {
-    transform: translateX(4px);
-  }
-
-  60% {
-    transform: translateX(-4px);
-  }
-
-  80% {
-    transform: translateX(4px);
-  }
-
-  100% {
-    transform: translateX(0);
-  }
+  0%   { transform: translateX(0); }
+  20%  { transform: translateX(-2px); }
+  40%  { transform: translateX(2px); }
+  60%  { transform: translateX(-2px); }
+  80%  { transform: translateX(2px); }
+  100% { transform: translateX(0); }
 }
 
-.shake {
+.cell.shake .cell-number {
   animation: shake 250ms;
 }
 
 @keyframes board-clear {
-  from {
-    opacity: 1;
-  }
-
-  to {
-    opacity: 0.2;
-  }
+  from { opacity: 1; }
+  to { opacity: 0.2; }
 }
 
 .board.cleared {
@@ -543,10 +580,6 @@ dialog menu {
 @media (min-width: 768px) {
   #app {
     padding: 24px;
-  }
-
-  .number-button {
-    font-size: 1.6rem;
   }
 }
 
