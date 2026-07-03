@@ -152,10 +152,12 @@ dialog button {
 #highlight-button {
   width: 44px;
   height: 36px;
-  margin-top: -24px;
-  margin-left: -10px;
+  margin-top: -14px;
+  margin-left: -6px;
   padding: 4px 10px;
 
+  align-items: center;
+  justify-content: center;
   display: flex;
   z-index: 0;
 
@@ -173,14 +175,15 @@ dialog button {
 }
 
 .highlight-label {
-  font-size: 0.85rem;
+  font-size: 0.95rem;
   font-weight: 500;
-  color: #666;
+  color: #777;
   z-index: 1;
 }
 
 #timer {
-  font-weight: 600;
+  font-size: 0.95rem;
+  font-weight: 500;
   margin-left: auto;
   margin-right: 100px;
 }
@@ -189,8 +192,10 @@ dialog button {
 #timer-time {
   font-family: "SF Mono", ui-monospace, Menlo, Consolas, monospace;
   font-variant-numeric: tabular-nums;
+  font-size: 1rem;
   font-weight: 700;
   letter-spacing: 0.03em;
+  margin-left: 5px;
   display: inline-block;
   width: 5.4ch;           /* 「00:00」分の固定幅 */
   text-align: right;
@@ -391,7 +396,6 @@ dialog button {
 
 .cell.highlight {
   background: var(--highlight);
-  box-shadow: inset 0 0 0 1px rgba(45,127,249,.25);
 }
 
 .cell.given {
@@ -475,7 +479,6 @@ dialog button {
 .number-button.selected::before {
   background: #eaf2ff;
   box-shadow:  0 3px 10px rgba(45,127,249,.15);
-  font-weight: 700;
 }
 
 .number-button.disabled::before {
@@ -491,8 +494,8 @@ dialog button {
 .remaining-count {
   position: absolute;
 
-  right: -2%;
-  bottom: 22%;
+  right: 3%;
+  bottom: 20%;
   transform: translate(50%, 50%);
 
   z-index: 1;
@@ -507,6 +510,10 @@ dialog button {
   font-size: clamp(24px, 5.5vw, 32px);
   position: relative;
   z-index: 1;
+}
+
+.number-button.selected .number {
+  font-weight: 700;
 }
 
 .number-button.disabled .number {
@@ -541,6 +548,86 @@ dialog button {
 
 #complete-problem-button:hover {
   background: var(--accent-hover);
+}
+
+/* ---------- ゲームクリア ---------- */
+
+.clear-overlay {
+  position: fixed;
+  inset: 0;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  background: rgba(0, 0, 0, .35);
+  backdrop-filter: blur(3px);
+
+  z-index: 1000;
+}
+
+.clear-dialog {
+  width: min(90vw, 360px);
+
+  padding: 36px 28px;
+
+  background: white;
+  border-radius: 20px;
+
+  box-shadow: 0 16px 40px rgba(0,0,0,.18);
+
+  text-align: center;
+
+  animation: clear-dialog-show .28s ease-out;
+}
+
+.clear-title {
+  font-size: 2rem;
+  font-weight: 800;
+  letter-spacing: .08em;
+
+  color: var(--accent);
+}
+
+.clear-time {
+  margin-top: 20px;
+
+  font-size: 1.2rem;
+  font-weight: 700;
+}
+
+.clear-message {
+  margin-top: 12px;
+
+  color: #666;
+  font-size: 1rem;
+}
+
+#clear-list-button {
+  width: 100%;
+
+  margin-top: 32px;
+  min-height: 56px;
+
+  border: none;
+  border-radius: 10px;
+
+  background: var(--accent);
+  color: white;
+
+  font-weight: 700;
+}
+
+@keyframes clear-dialog-show {
+  from {
+    opacity: 0;
+    transform: translateY(10px) scale(.92);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
 }
 
 /* ---------- ダイアログ ---------- */
@@ -621,13 +708,12 @@ dialog menu {
   animation: shake 250ms;
 }
 
-@keyframes board-clear {
-  from { opacity: 1; }
-  to { opacity: 0.2; }
-}
-
 .board.cleared {
-  animation: board-clear 600ms forwards;
+  opacity: .8;
+  transform: scale(.98);
+  transition:
+    opacity .45s ease,
+    transform .45s ease;
 }
 
 /* ---------- タブレット以上 ---------- */

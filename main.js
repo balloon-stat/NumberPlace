@@ -47,6 +47,10 @@ const elements = {
   problemList: document.getElementById("problem-list"),
   emptyProblemList: document.getElementById("empty-problem-list"),
   createProblemButton: document.getElementById("create-problem-button"),
+  // clear
+  clearOverlay: document.getElementById("clear-overlay"),
+  clearTime: document.getElementById("clear-time"),
+  clearListButton: document.getElementById("clear-list-button"),
   // dialog
   problemNameDialog: document.getElementById("problem-name-dialog"),
   problemNameInput: document.getElementById("problem-name-input"),
@@ -302,23 +306,18 @@ function selectNumber(number) {
   if (state.errorCells.size > 0) {
     state.errorCells.clear();
   }
-  // 同じ数字を押したら選択解除
+
   if (state.selectedNumber === number) {
     state.selectedNumber = null;
-    renderGame();
-    return;
+  } else {
+    state.selectedNumber = number;
   }
 
-  if (state.selectedCell) {
+  if (state.selectedCell && number === 0) {
     const { row, col } = state.selectedCell;
-
-    if (number === 0) {
-      eraseNumber(row, col);
-    } else {
-      inputNumber(row, col, number);
-    }
+    eraseNumber(row, col);
   }
-  state.selectedNumber = number;
+
   renderGame();
 }
 
@@ -392,7 +391,7 @@ function renderNumberPad() {
     }
     const remaining = getRemainingCount(number);
     const countElement = button.querySelector(".remaining-count");
-    countElement.textContent = remaining === 0 ? "" : `× ${remaining}`;
+    countElement.textContent = `× ${remaining}`;
     button.classList.toggle("disabled", remaining === 0);
   });
 }
@@ -425,6 +424,7 @@ function showGameScreen() {
 
 function startProblemCreation() {
   elements.board.classList.remove("cleared");
+  elements.clearOverlay.classList.add("hidden");
   state.mode = "edit";
 
   state.board = createEmptyBoard();
@@ -608,6 +608,14 @@ function initializeButtons() {
     state.highlightEnabled = !state.highlightEnabled;
     renderGame();
   });
+
+  elements.clearListButton.addEventListener(
+    "click", () => {
+      elements.clearOverlay.classList.add("hidden");
+      state.mode = "list";
+      renderProblemList();
+      showProblemListScreen();
+  });
 }
 
 function deleteProblem(id) {
@@ -625,6 +633,7 @@ function loadProblem(id) {
   if (!problem) return;
 
   elements.board.classList.remove("cleared");
+  elements.clearOverlay.classList.add("hidden");
   
   state.mode = "play";
   state.board = structuredClone(problem.board);
@@ -851,9 +860,10 @@ function handleClear() {
   playClearSound();
 
   setTimeout(() => {
-    alert(
-      `クリア！\n${formatTime(state.elapsedSeconds)}`
-    );
+    elements.clearTime.textContent =
+      formatTime(state.elapsedSeconds);
+
+    elements.clearOverlay.classList.remove("hidden");
   }, 650);
 }
 
