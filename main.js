@@ -241,41 +241,40 @@ function renderBoard() {
       const index = row * BOARD_SIZE + col;
       const cell = cells[index];
       const value = state.board[row][col];
-      const key = getCellKey(row, col);
+      const isSelectedCell =
+              state.selectedCell?.row === row &&
+              state.selectedCell?.col === col;
 
       cell.numberElement.textContent = value || "";
-      cell.classList.remove(
-        "selected",
-        "given",
-        "highlight",
-        "error"
-      );
-      if (
-        state.selectedCell &&
-        state.selectedCell.row === row &&
-        state.selectedCell.col === col
-      ) {
-        cell.classList.add("selected");
-      }
+      cell.classList.remove("selected", "given", "highlight", "error");
 
       if (state.givenBoard[row][col] !== 0) {
         cell.classList.add("given");
       }
 
-      if (state.highlightEnabled && state.selectedCell) {
-        const selRow = state.selectedCell.row;
-        const selCol = state.selectedCell.col;
-        const selValue = state.board[selRow][selCol];
+      if (state.highlightEnabled) {
+        let highlightNumber = null;
 
-        // 選択セルに数字がある場合、同じ数字のセルをハイライト
-        if (selValue !== 0 && selValue === value) {
-          // 選択セル自身は selected クラス優先のためスキップ
-          if (!(selRow === row && selCol === col)) {
+        if (state.selectedNumber > 0) {
+          highlightNumber = state.selectedNumber;
+        } else if (state.selectedCell) {
+          const { row: selRow, col: selCol } = state.selectedCell;
+          const selVal = state.board[selRow][selCol];
+          highlightNumber = selVal || null;
+        }
+
+        if (highlightNumber ===  value) {
+          if (!isSelectedCell) {
             cell.classList.add("highlight");
           }
         }
       }
 
+      if (isSelectedCell) {
+        cell.classList.add("selected");
+      }
+
+      const key = getCellKey(row, col);
       if (state.errorCells.has(key)) {
         cell.classList.add("error");
       }
@@ -319,6 +318,8 @@ function selectNumber(number) {
     const { row, col } = state.selectedCell;
     eraseNumber(row, col);
   }
+
+  state.selectedCell = null;
 
   renderGame();
 }
