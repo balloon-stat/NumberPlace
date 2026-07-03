@@ -24,13 +24,47 @@
         </div>
       </div>
 
-      <div class="problem-list-footer">
+      <footer class="problem-list-footer">
         <button id="create-problem-button" class="primary-button">
           <span class="button-icon">＋</span>
           <span>新しい問題を作成</span>
         </button>
-      </div>
+
+        <div class="import-export-buttons">
+          <button id="import-button" class="secondary-button">
+            ↓ インポート
+          </button>
+
+          <button id="export-button" class="secondary-button">
+            ↑ エクスポート
+          </button>
+        </div>
+        
+        <p id="problem-list-status" class="problem-list-status"></p>
+      </footer>
+
     </section>
+
+    <dialog id="import-dialog">
+
+      <form method="dialog">
+        <h2>問題データ</h2>
+        <textarea
+          id="import-text"
+          rows="10"
+          placeholder="ここへ問題データを貼り付けてください"></textarea>
+        <p id="import-error" class="import-error hidden"></p>
+        <menu>
+          <button value="cancel">
+            キャンセル
+          </button>
+          <button id="import-ok-button" value="default">
+            読み込み
+          </button>
+        </menu>
+      </form>
+
+    </dialog>
 
     <!-- プレイ / 問題作成 共通画面 -->
     <section id="game-screen" class="screen hidden">

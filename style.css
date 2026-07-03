@@ -64,6 +64,10 @@ button:focus-visible,
   max-width: var(--max-width);
   margin: 0 auto;
   padding: 16px;
+
+  height: 100dvh;
+  display: flex;
+  box-sizing: border-box;
 }
 
 .number-button,
@@ -79,7 +83,8 @@ dialog button {
 .screen {
   display: flex;
   flex-direction: column;
-  min-height: calc(100dvh - 32px);
+  flex: 1;
+  min-height: 0;
 }
 
 .screen-header {
@@ -203,12 +208,18 @@ dialog button {
 
 /* ---------- 問題一覧 ---------- */
 
+.problem-list-screen {
+  flex: 1;
+  min-height: 0;
+}
+
 .problem-list-screen .screen-header {
   margin-bottom: 16px;
 }
 
 .problem-list {
   flex: 1;
+  min-height: 0;
   display: flex;
   flex-direction: column;
   gap: 8px;
@@ -346,6 +357,47 @@ dialog button {
 
 .button-icon {
   font-size: 1.2rem;
+}
+
+.import-export-buttons {
+  display: flex;
+  gap: 8px;
+  margin-top: 16px;
+  margin-bottom: 8px;
+}
+
+.secondary-button {
+  flex: 1;
+
+  min-height: 44px;
+
+  background: white;
+  color: #555;
+
+  border: 1px solid var(--border);
+  border-radius: 8px;
+
+  font-weight: 600;
+}
+
+#import-text {
+  width: 100%;
+  resize: vertical;
+  font-family: monospace;
+}
+
+.import-error {
+  margin: 0;
+  color: var(--error-text);
+  font-size: .9rem;
+}
+
+.problem-list-status {
+  min-height: 1.4em;
+  margin: 0;
+  font-size: .9rem;
+  color: #666;
+  text-align: center;
 }
 
 /* ---------- 盤面 ---------- */

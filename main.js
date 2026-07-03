@@ -30,30 +30,33 @@ const elements = {
   // screen
   gameScreen: document.getElementById("game-screen"),
   problemListScreen: document.getElementById("problem-list-screen"),
-  // header
+  // board
   newButton: document.getElementById("new-button"),
   modeLabel: document.getElementById("mode-label"),
   timer: document.getElementById("timer"),
   timeSpan: document.getElementById("timer-time"),
-  // board
   board: document.getElementById("board"),
-  // number pad
   numberPad: document.getElementById("number-pad"),
   eraseButton: document.getElementById("erase-button"),
-  // controls
   highlightButton: document.getElementById("highlight-button"),
   completeProblemButton: document.getElementById("complete-problem-button"),
   // problem list
   problemList: document.getElementById("problem-list"),
   emptyProblemList: document.getElementById("empty-problem-list"),
   createProblemButton: document.getElementById("create-problem-button"),
+  problemListStatus: document.getElementById("problem-list-status"),
+  importButton: document.getElementById("import-button"),
+  exportButton: document.getElementById("export-button"),
+  importDialog: document.getElementById("import-dialog"),
+  importOkButton: document.getElementById("import-ok-button"),
+  importText: document.getElementById("import-text"),
+  importError: document.getElementById("import-error"),
+  problemNameDialog: document.getElementById("problem-name-dialog"),
+  problemNameInput: document.getElementById("problem-name-input"),
   // clear
   clearOverlay: document.getElementById("clear-overlay"),
   clearTime: document.getElementById("clear-time"),
   clearListButton: document.getElementById("clear-list-button"),
-  // dialog
-  problemNameDialog: document.getElementById("problem-name-dialog"),
-  problemNameInput: document.getElementById("problem-name-input"),
 };
 
 initialize();
@@ -86,7 +89,6 @@ function initialize() {
 
 function registerEventListeners() {
   initializeNumberPad();
-  initializeDialog();
   initializeProblemList();
   initializeButtons();
   setupVisibilityHandlers();
@@ -494,22 +496,6 @@ function saveProblem(name) {
   saveProblems();
 }
 
-function initializeDialog() {
-  elements.problemNameDialog.addEventListener(
-  "close",
-    () => {
-      if (elements.problemNameDialog.returnValue !== "default") {
-        return;
-      }
-      const name =
-        elements.problemNameInput.value.trim()
-        || getDefaultProblemName();
-
-      saveProblem(name);
-    }
-  );
-}
-
 function initializeProblemList() {
   elements.problemList.addEventListener(
     "click",
@@ -537,6 +523,7 @@ function initializeProblemList() {
 }
 
 function renderProblemList() {
+  setProblemListStatus("");
   elements.problemList.innerHTML = "";
 
   if (state.problems.length === 0) {
@@ -585,15 +572,10 @@ function renderProblemList() {
 }
 
 function initializeButtons() {
-  elements.createProblemButton.addEventListener(
-    "click",
-    startProblemCreation
-  );
-
-  elements.completeProblemButton.addEventListener(
-    "click",
-    completeProblem
-  );
+  elements.importButton.addEventListener("click", openImportDialog);
+  elements.exportButton.addEventListener("click", exportProblems);
+  elements.createProblemButton.addEventListener("click", startProblemCreation);
+  elements.completeProblemButton.addEventListener("click", completeProblem);
 
   elements.newButton.addEventListener(
     "click", () => {
@@ -616,6 +598,156 @@ function initializeButtons() {
       renderProblemList();
       showProblemListScreen();
   });
+
+  elements.problemNameDialog.addEventListener("close",
+    () => {
+      if (elements.problemNameDialog.returnValue !== "default") {
+        return;
+      }
+      const name =
+        elements.problemNameInput.value.trim()
+        || getDefaultProblemName();
+
+      saveProblem(name);
+    }
+  );
+
+  elements.importText.addEventListener("input", () => {
+    elements.importError.classList.add("hidden");
+  });
+
+  elements.importOkButton.addEventListener("click",
+    (e) => {
+      e.preventDefault();
+      if (importProblems(elements.importText.value)) {
+        elements.importText.value = "";
+        elements.importDialog.close();
+      }
+    }
+  );
+}
+
+function openImportDialog() {
+  elements.importText.value = "";
+  elements.importError.textContent = "";
+  elements.importError.classList.add("hidden");
+  elements.importDialog.showModal();
+}
+
+async function exportProblems() {
+  const json = formatExportJson(state.problems);
+
+  try {
+    await navigator.clipboard.writeText(json);
+    const count = state.problems.length;
+    setProblemListStatus(`${count}件の問題をコピーしました。`);
+  } catch {
+    setProblemListStatus("問題データをコピーできませんでした。");
+  }
+}
+
+function formatExportJson(problems) {
+  let json = JSON.stringify(problems, null, 2);
+
+  // board の各行だけを 1 行に戻す
+  json = json.replace(
+    /\[\n((?:\s+\d,?\n?)+?)\s+\]/g,
+    (_, body) => {
+      const numbers = body
+        .trim()
+        .split(/\s*,?\n\s*/)
+        .filter(Boolean);
+
+      return `[${numbers.join(",")}]`;
+    }
+  );
+
+  return json + "\n";
+}
+
+function importProblems(text) {
+  const result = validateProblems(text);
+  if (!result.ok) {
+    elements.importError.textContent = result.message;
+    elements.importError.classList.remove("hidden");
+    setProblemListStatus("");
+    return false;
+  }
+  const existingIds = new Set(state.problems.map(problem => problem.id));
+  const imported = result.problems.filter(
+      problem => !existingIds.has(problem.id)
+    );
+  state.problems.push(...imported);
+
+  saveProblems();
+  renderProblemList();
+
+  const skipped = result.problems.length - imported.length;
+  let msg = `${imported.length}件の問題を読み込みました。`;
+  if (skipped > 0) {
+    msg += `（${skipped}件は重複のためスキップしました。）`;
+  }
+  setProblemListStatus(msg);
+
+  return true;
+}
+
+function validateProblems(text) {
+  let problems;
+  if (!text.trim()) {
+      return {ok:false, message:"問題データを入力してください。"};
+  }
+  try {
+    problems = JSON.parse(text);
+  } catch {
+    return {ok: false, message: "JSONの形式が正しくありません。" };
+  }
+  if (!Array.isArray(problems)) {
+    return {ok: false, message: "問題データではありません。" };
+  }
+  for (const problem of problems) {
+    const result = validateProblem(problem);
+    if (!result.ok) {
+      return result;
+    }
+  }
+  return {ok: true, problems};
+}
+
+function validateProblem(problem) {
+
+  if (typeof problem.id !== "string" || problem.id.trim() === "") {
+    return {ok: false, message: "id が正しくありません。"};
+  }
+  if (typeof problem.name !== "string") {
+    return {ok: false, message: "問題名が正しくありません。"};
+  }
+  if (!Number.isFinite(problem.createdAt)) {
+  return {ok: false, message: "createdAt が正しくありません。"};
+  }
+  if (!Array.isArray(problem.board)) {
+    return {ok: false, message: "board の形式が正しくありません。"};
+  }
+  if (problem.board.length !== 9) {
+    return {ok: false, message: "盤面は9行必要です。"};
+  }
+  for (let row = 0; row < 9; row++) {
+    if (!Array.isArray(problem.board[row]) || problem.board[row].length !== 9) {
+      return {ok: false, message: `${row + 1}行目は9列必要です。`};
+    }
+    for (let col = 0; col < 9; col++) {
+      const value = problem.board[row][col];
+      if (!Number.isInteger(value) || value < 0 || value > 9) {
+        return {ok: false, message: `${row + 1}行${col + 1}列の値が不正です。`};
+      }
+    }
+  }
+  return {ok: true};
+
+}
+
+function setProblemListStatus(message = "") {
+  elements.problemListStatus.textContent = message;
 }
 
 function deleteProblem(id) {
