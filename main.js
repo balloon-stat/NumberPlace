@@ -6,8 +6,6 @@ const STORAGE_KEYS = {
   PROBLEMS: "numberPlaceProblems",
 };
 
-const sound = new Sound();
-
 const state = {
   mode: "list",
 
@@ -26,6 +24,16 @@ const state = {
   problems: [],
 };
 
+const sound = new Sound();
+
+const vibrate =
+  navigator.vibrate?.bind(navigator) ??
+  (() => {});
+
+function vibrateInput() { vibrate(8); }
+function vibrateError() { vibrate([50, 30, 50]); }
+function vibrateClear() { vibrate(25); }
+
 const elements = {
   // screen
   gameScreen: document.getElementById("game-screen"),
@@ -37,7 +45,8 @@ const elements = {
   timeSpan: document.getElementById("timer-time"),
   board: document.getElementById("board"),
   numberPad: document.getElementById("number-pad"),
-  eraseButton: document.getElementById("erase-button"),
+  numberButtons: null,
+  remainingCounts: null,
   highlightButton: document.getElementById("highlight-button"),
   completeProblemButton: document.getElementById("complete-problem-button"),
   // problem list
@@ -145,8 +154,7 @@ function handleCellClick(row, col) {
 
   const val = state.board[row][col];
 
-  const hasVal = val !== 0;
-  if (hasVal && state.selectedNumber !== 0) {
+  if (val !== 0 && state.selectedNumber !== 0) {
     const isAlreadySelected = state.selectedNumber === val;
     state.selectedNumber = isAlreadySelected ? null : val;
   } else if (state.selectedNumber !== null) {
@@ -190,7 +198,6 @@ function findDuplicates(row, col, number) {
   if (number === 0) return new Set();
 
   const duplicates = new Set();
-  const errors = new Set();
 
   // 行チェック
   for (let c = 0; c < BOARD_SIZE; c++) {
@@ -198,23 +205,13 @@ function findDuplicates(row, col, number) {
       duplicates.add(getCellKey(row, c));
     }
   }
-  if (duplicates.size > 1) {
-    duplicates.forEach(key => errors.add(key));
-  }
-
   // 列チェック
-  duplicates.clear();
   for (let r = 0; r < BOARD_SIZE; r++) {
     if (state.board[r][col] === number) {
       duplicates.add(getCellKey(r, col));
     }
   }
-  if (duplicates.size > 1) {
-    duplicates.forEach(key => errors.add(key));
-  }
-
   // ブロックチェック
-  duplicates.clear();
   const blockRow = Math.floor(row / 3) * 3;
   const blockCol = Math.floor(col / 3) * 3;
   for (let r = 0; r < 3; r++) {
@@ -226,11 +223,13 @@ function findDuplicates(row, col, number) {
       }
     }
   }
-  if (duplicates.size > 1) {
-    duplicates.forEach(key => errors.add(key));
+
+  // 1つだけなら重複ではない（自分自身のみ）
+  if (duplicates.size === 1) {
+    duplicates.clear();
   }
 
-  return errors;
+  return duplicates;
 }
 
 function renderBoard() {
@@ -298,9 +297,7 @@ function triggerErrorFeedback() {
     }
   });
 
-  if (navigator.vibrate) {
-    navigator.vibrate([50, 30, 50]);
-  }
+  vibrateError();
 }
 
 function selectNumber(number) {
@@ -314,12 +311,18 @@ function selectNumber(number) {
     state.selectedNumber = number;
   }
 
-  if (state.selectedCell && number === 0) {
+  if (state.selectedCell) {
     const { row, col } = state.selectedCell;
-    eraseNumber(row, col);
+    const val = state.board[row][col];
+    if (number === 0) {
+      eraseNumber(row, col);
+    } else if (val === 0 && state.selectedNumber) {
+      inputNumber(row, col, state.selectedNumber);
+    }
+    else {
+      state.selectedCell = null;
+    }
   }
-
-  state.selectedCell = null;
 
   renderGame();
 }
@@ -336,7 +339,8 @@ function inputNumber(row, col, number) {
   }
   state.board[row][col] = number;
 
-  playInputSound();
+  playInputSound(number);
+  vibrateInput();
 
   if (state.mode === "play") {
     state.errorCells = findDuplicates(row, col, number);
@@ -383,25 +387,34 @@ function getRemainingCount(number) {
 }
 
 function renderNumberPad() {
-  const buttons = elements.numberPad.querySelectorAll(".number-button");
-
-  buttons.forEach((button) => {
+  elements.numberButtons.forEach((button) => {
     const number = Number(button.dataset.number);
     button.classList.toggle("selected", state.selectedNumber === number);
 
-    if (number === 0) {
-      return;
-    }
+    if (number === 0) return;
+
     const remaining = getRemainingCount(number);
-    const countElement = button.querySelector(".remaining-count");
-    countElement.textContent = `× ${remaining}`;
+    const countEl = elements.remainingCounts[number];
+    countEl.textContent = `× ${remaining}`;
     button.classList.toggle("disabled", remaining === 0);
   });
 }
 
 function initializeNumberPad() {
-  elements.numberPad.addEventListener("click", (event) => {
-    const button = event.target.closest(".number-button");
+  elements.numberButtons = Array.from(
+    elements.numberPad.querySelectorAll(".number-button")
+  );
+
+  elements.remainingCounts = {};
+  elements.numberButtons.forEach(btn => {
+    const num = Number(btn.dataset.number);
+    if (num !== 0) {
+      elements.remainingCounts[num] = btn.querySelector(".remaining-count");
+    }
+  })
+
+  elements.numberPad.addEventListener("click", (e) => {
+    const button = e.target.closest(".number-button");
 
     if (!button) {
       return;
@@ -500,23 +513,16 @@ function saveProblem(name) {
 function initializeProblemList() {
   elements.problemList.addEventListener(
     "click",
-    (event) => {
-      const playButton =
-        event.target.closest(".play-problem-button");
-
+    (e) => {
+      const playButton = e.target.closest(".play-problem-button");
       if (playButton) {
         const id = playButton.dataset.id;
-
         loadProblem(id);
         return;
       }
-
-      const deleteButton =
-        event.target.closest(".delete-problem-button");
-
+      const deleteButton = e.target.closest(".delete-problem-button");
       if (deleteButton) {
         const id = deleteButton.dataset.id;
-
         deleteProblem(id);
       }
     }
@@ -986,11 +992,8 @@ function handleClear() {
 
   elements.board.classList.add("cleared");
 
-  if (navigator.vibrate) {
-    navigator.vibrate(300);
-  }
-
   playClearSound();
+  vibrateClear();
 
   setTimeout(() => {
     elements.clearTime.textContent =
@@ -1014,9 +1017,9 @@ function playErrorSound() {
 function playInputSound(number) {
   const freq = [
     0,
-    660, 700, 740,
-    784, 830, 880,
-    932, 988, 1046,
+    660, 680, 700,
+    720, 740, 760,
+    780, 800, 820,
   ];
 
   sound.playSynth({

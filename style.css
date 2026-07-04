@@ -65,7 +65,7 @@ button:focus-visible,
   margin: 0 auto;
   padding: 16px;
 
-  height: 100dvh;
+  min-height: 100dvh;
   display: flex;
   box-sizing: border-box;
 }
@@ -85,6 +85,11 @@ dialog button {
   flex-direction: column;
   flex: 1;
   min-height: 0;
+}
+
+#game-screen {
+  overflow-y: auto;
+  padding-bottom: 20px;
 }
 
 .screen-header {
