@@ -348,6 +348,7 @@ function inputNumber(row, col, number) {
       triggerErrorFeedback();
     } else if (state.mode === "play" && isBoardCleared()) {
       handleClear();
+      return;
     }
   }
 
@@ -985,11 +986,7 @@ function isBoardCleared() {
 
 function handleClear() {
   stopTimer();
-
-  localStorage.removeItem(
-    STORAGE_KEYS.PLAY_DATA
-  );
-
+  localStorage.removeItem(STORAGE_KEYS.PLAY_DATA);
   elements.board.classList.add("cleared");
 
   playClearSound();
@@ -998,7 +995,6 @@ function handleClear() {
   setTimeout(() => {
     elements.clearTime.textContent =
       formatTime(state.elapsedSeconds);
-
     elements.clearOverlay.classList.remove("hidden");
   }, 650);
 }
